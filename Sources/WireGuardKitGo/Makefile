@@ -32,10 +32,10 @@ version-header: $(DESTDIR)/wireguard-go-version.h
 REAL_GOROOT := $(shell go env GOROOT 2>/dev/null)
 export GOROOT := $(BUILDDIR)/goroot
 
-echo "GOROOT=$GOROOT"
-echo "REAL_GOROOT=$REAL_GOROOT"
-echo "DESTDIR=$DESTDIR"
-echo "BUILDDIR=$BUILDDIR"
+$(info $$GOROOT is [${GOROOT}])
+$(info $$REAL_GOROOT is [${REAL_GOROOT}])
+$(info $$DESTDIR is [${DESTDIR}])
+$(info $$BUILDDIR is [${BUILDDIR}])
 
 $(GOROOT)/.prepared:
 	[ -n "$(REAL_GOROOT)" ]
