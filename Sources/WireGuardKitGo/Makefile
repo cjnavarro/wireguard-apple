@@ -6,8 +6,8 @@
 ARCHS ?= x86_64 arm64
 PLATFORM_NAME ?= macosx
 SDKROOT ?= $(shell xcrun --sdk $(PLATFORM_NAME) --show-sdk-path)
-CONFIGURATION_BUILD_DIR ?= $(CURDIR)/out
-CONFIGURATION_TEMP_DIR ?= $(CURDIR)/.tmp
+CONFIGURATION_BUILD_DIR ?= $(notdir $(CURDIR))/out
+CONFIGURATION_TEMP_DIR ?= $(notdir $(CURDIR))/.tmp
 
 export PATH := $(PATH):/usr/local/bin:/opt/homebrew/bin
 export CC ?= clang
@@ -31,11 +31,6 @@ version-header: $(DESTDIR)/wireguard-go-version.h
 
 REAL_GOROOT := $(shell go env GOROOT 2>/dev/null)
 export GOROOT := $(BUILDDIR)/goroot
-
-$(info $$GOROOT is [${GOROOT}])
-$(info $$REAL_GOROOT is [${REAL_GOROOT}])
-$(info $$DESTDIR is [${DESTDIR}])
-$(info $$BUILDDIR is [${BUILDDIR}])
 
 $(GOROOT)/.prepared:
 	[ -n "$(REAL_GOROOT)" ]
