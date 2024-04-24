@@ -44,7 +44,7 @@ $(GOROOT)/.prepared:
 	mkdir -p "$(GOROOT)"
 	rsync -a --delete --exclude=pkg/obj/go-build "$(REAL_GOROOT)/" "$(GOROOT)/"
 	cat goruntime-*.diff | patch -p1 -f -N -r- -d "$(GOROOT)"
-	touch "$@"
+	touch $(shell echo "$(@)" | sed 's/ /\\ /g')
 
 define libwg-go-a
 $(BUILDDIR)/libwg-go-$(1).a: export CGO_ENABLED := 1
