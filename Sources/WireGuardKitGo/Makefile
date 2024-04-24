@@ -19,6 +19,9 @@ LIPO ?= lipo
 DESTDIR ?= $(CONFIGURATION_BUILD_DIR_2)
 BUILDDIR ?= $(CONFIGURATION_TEMP_DIR_2)/wireguard-go-bridge
 
+DESTDIR_2 = $(shell echo "$(DESTDIR)" | sed 's/ /\\ /g')
+BUILDDIR_2 = $(shell echo "$(BUILDDIR)" | sed 's/ /\\ /g')
+
 CFLAGS_PREFIX := $(if $(DEPLOYMENT_TARGET_CLANG_FLAG_NAME),-$(DEPLOYMENT_TARGET_CLANG_FLAG_NAME)=$($(DEPLOYMENT_TARGET_CLANG_ENV_NAME)),) -isysroot $(SDKROOT) -arch
 GOARCH_arm64 := arm64
 GOARCH_x86_64 := amd64
@@ -30,11 +33,11 @@ ifeq ($(UNAME), $(GOARCH_arm64))
 	GOOS_iphonesimulator := ios
 endif
 
-build: $(DESTDIR)/libwg-go.a
-version-header: $(DESTDIR)/wireguard-go-version.h
+build: $(DESTDIR_2)/libwg-go.a
+version-header: $(DESTDIR_2)/wireguard-go-version.h
 
 REAL_GOROOT := $(shell go env GOROOT 2>/dev/null)
-export GOROOT := $(BUILDDIR)/goroot
+export GOROOT := $(BUILDDIR_2)/goroot
 
 $(info    REAL_GOROOT is $(REAL_GOROOT))
 $(info    GOROOT is $(GOROOT))
@@ -53,23 +56,23 @@ $(BUILDDIR)/libwg-go-$(1).a: export CGO_LDFLAGS := $(CFLAGS_PREFIX) $(ARCH)
 $(BUILDDIR)/libwg-go-$(1).a: export GOOS := $(GOOS_$(PLATFORM_NAME))
 $(BUILDDIR)/libwg-go-$(1).a: export GOARCH := $(GOARCH_$(1))
 $(BUILDDIR)/libwg-go-$(1).a: $(GOROOT)/.prepared go.mod
-	go build -ldflags=-w -trimpath -v -o "$(BUILDDIR)/libwg-go-$(1).a" -buildmode c-archive
-	rm -f "$(BUILDDIR)/libwg-go-$(1).h"
+	go build -ldflags=-w -trimpath -v -o "$(BUILDDIR_2)/libwg-go-$(1).a" -buildmode c-archive
+	rm -f "$(BUILDDIR_2)/libwg-go-$(1).h"
 endef
 $(foreach ARCH,$(ARCHS),$(eval $(call libwg-go-a,$(ARCH))))
 
-$(DESTDIR)/wireguard-go-version.h: go.mod $(GOROOT)/.prepared
+$(DESTDIR_2)/wireguard-go-version.h: go.mod $(GOROOT)/.prepared
 	 sed -E -n 's/.*golang\.zx2c4\.com\/wireguard +v[0-9.]+-[0-9]+-([0-9a-f]{8})[0-9a-f]{4}.*/#define WIREGUARD_GO_VERSION "\1"/p' "$<" > "$@"
 
-$(info    BUILDDIR is $(BUILDDIR))
-$(info    DESTDIR is $(DESTDIR))
+$(info    BUILDDIR is $(BUILDDIR_2))
+$(info    DESTDIR is $(DESTDIR_2))
 
-$(DESTDIR)/libwg-go.a: $(foreach ARCH,$(ARCHS),$(BUILDDIR)/libwg-go-$(ARCH).a)
-	@mkdir -vp "$(DESTDIR)"
+$(DESTDIR_2)/libwg-go.a: $(foreach ARCH,$(ARCHS),$(BUILDDIR_2)/libwg-go-$(ARCH).a)
+	@mkdir -vp "$(DESTDIR_2)"
 	$(LIPO) -create -output "$@" $^
 
 clean:
-	rm -rf "$(BUILDDIR)" "$(DESTDIR)/libwg-go.a" "$(DESTDIR)/wireguard-go-version.h"
+	rm -rf "$(BUILDDIR_2)" "$(DESTDIR_2)/libwg-go.a" "$(DESTDIR_2)/wireguard-go-version.h"
 
 install: build
 
