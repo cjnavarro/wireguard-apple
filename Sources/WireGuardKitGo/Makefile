@@ -6,14 +6,18 @@
 ARCHS ?= x86_64 arm64
 PLATFORM_NAME ?= macosx
 SDKROOT ?= $(shell xcrun --sdk $(PLATFORM_NAME) --show-sdk-path)
+
 CONFIGURATION_BUILD_DIR ?= $(CURDIR)/out
 CONFIGURATION_TEMP_DIR ?= $(CURDIR)/.tmp
+
+CONFIGURATION_BUILD_DIR_2 = $(shell echo "$(CONFIGURATION_BUILD_DIR)" | sed 's/ /\\ /g')
+CONFIGURATION_TEMP_DIR_2 = $(shell echo "$(CONFIGURATION_TEMP_DIR)" | sed 's/ /\\ /g')
 
 export PATH := $(PATH):/usr/local/bin:/opt/homebrew/bin
 export CC ?= clang
 LIPO ?= lipo
-DESTDIR ?= $(CONFIGURATION_BUILD_DIR)
-BUILDDIR ?= $(CONFIGURATION_TEMP_DIR)/wireguard-go-bridge
+DESTDIR ?= $(CONFIGURATION_BUILD_DIR_2)
+BUILDDIR ?= $(CONFIGURATION_TEMP_DIR_2)/wireguard-go-bridge
 
 CFLAGS_PREFIX := $(if $(DEPLOYMENT_TARGET_CLANG_FLAG_NAME),-$(DEPLOYMENT_TARGET_CLANG_FLAG_NAME)=$($(DEPLOYMENT_TARGET_CLANG_ENV_NAME)),) -isysroot $(SDKROOT) -arch
 GOARCH_arm64 := arm64
@@ -32,6 +36,7 @@ version-header: $(DESTDIR)/wireguard-go-version.h
 REAL_GOROOT := $(shell go env GOROOT 2>/dev/null)
 export GOROOT := $(BUILDDIR)/goroot
 
+$(info    REAL_GOROOT is $(REAL_GOROOT))
 $(info    GOROOT is $(GOROOT))
 
 $(GOROOT)/.prepared:
@@ -55,6 +60,9 @@ $(foreach ARCH,$(ARCHS),$(eval $(call libwg-go-a,$(ARCH))))
 
 $(DESTDIR)/wireguard-go-version.h: go.mod $(GOROOT)/.prepared
 	 sed -E -n 's/.*golang\.zx2c4\.com\/wireguard +v[0-9.]+-[0-9]+-([0-9a-f]{8})[0-9a-f]{4}.*/#define WIREGUARD_GO_VERSION "\1"/p' "$<" > "$@"
+
+$(info    BUILDDIR is $(BUILDDIR))
+$(info    DESTDIR is $(DESTDIR))
 
 $(DESTDIR)/libwg-go.a: $(foreach ARCH,$(ARCHS),$(BUILDDIR)/libwg-go-$(ARCH).a)
 	@mkdir -vp "$(DESTDIR)"
